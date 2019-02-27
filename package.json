@@ -1,0 +1,10 @@
+{
+  "name": "web-socket-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io-server": "^1.0.0-b",
+    "twitter": "^1.7.1"
+  }
+}
