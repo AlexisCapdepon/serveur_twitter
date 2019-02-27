@@ -1,9 +1,9 @@
-var app = require('http').createServer(handler)
-var io = require('socket.io')(app);
+var server = require('http').createServer(handler)
+var io = require('socket.io')(server);
 var fs = require('fs');
 var Twitter = require('twitter');
 
-app.listen(8090);
+server.listen(8090);
 
 function handler (req, res) {
   fs.readFile(__dirname + '/index.html',
@@ -24,12 +24,15 @@ var client = new Twitter({
   access_token_secret: 'TGQRKe4nKjrhaeM8cPAcQu7IOEtC1aaiB4YoTJtMDJS5b'
 });
 
-io.on('connection', function (socket) {
-var stream = client.stream('statuses/filter', {track: 'javascript', tweet_mode: 'extended'});
-  stream.on('data', function(tweet) {
-    socket.emit('tweets',formatter(tweet));
-  });
+io.on('connection', function (socket){
+  socket.emit('connection','connect');
 });
+
+var stream = client.stream('statuses/filter', {track: 'travel', tweet_mode: 'extended'});
+stream.on('data', function(tweet) {
+  io.sockets.emit('tweets',formatter(tweet));
+});
+
 
 /**
  * formatted data.
@@ -38,32 +41,34 @@ var stream = client.stream('statuses/filter', {track: 'javascript', tweet_mode: 
  * @return {object} tweet
  */
 var formatter = function (tweet) {
+  var timenow = new Date(tweet.created_at).toDateString();
+  console.log(tweet.reply_count,tweet.retweet_count,tweet.favorite_count);
   if(tweet.truncated){
     return {
-      'created_at': tweet.created_at,
+      'created_at': timenow,
       'id' : tweet.id,
       'text': tweet.extended_tweet.full_text,
       'user':{
         'name': tweet.user.name,
         'avatar': tweet.user.profile_image_url_https
       },
-      'replyCount': tweet.reply_count,
-      'retweetCount': tweet.retweet_count,
-      'favoriteCount': tweet.favorite_count,
-      'coordonates': tweet.coordinates
+      'reply_count': tweet.reply_count,
+      'retweet_count': tweet.retweet_count,
+      'favorite_count': tweet.favorite_count,
+      'coordonates': tweet.user.lang
     }
   }
   return {
-    'created_at': tweet.created_at,
+    'created_at': timenow,
     'id' : tweet.id,
     'text': tweet.text || tweet.extended_tweet.full_text,
     'user':{
       'name': tweet.user.name,
       'avatar': tweet.user.profile_image_url_https
     },
-    'replyCount': tweet.reply_count,
-    'retweetCount': tweet.retweet_count,
-    'favoriteCount': tweet.favorite_count,
-    'coordonates': tweet.coordinates
+    'reply_count': tweet.reply_count,
+    'retweet_count': tweet.retweet_count,
+    'favorite_count': tweet.favorite_count,
+    'coordonates': tweet.user.lang
   }
 }
