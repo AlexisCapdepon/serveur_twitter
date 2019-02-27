@@ -42,7 +42,6 @@ stream.on('data', function(tweet) {
  */
 var formatter = function (tweet) {
   var timenow = new Date(tweet.created_at).toDateString();
-  console.log(tweet.reply_count,tweet.retweet_count,tweet.favorite_count);
   if(tweet.truncated){
     return {
       'created_at': timenow,
@@ -61,7 +60,7 @@ var formatter = function (tweet) {
   return {
     'created_at': timenow,
     'id' : tweet.id,
-    'text': tweet.text || tweet.extended_tweet.full_text,
+    'text': tweet.text,
     'user':{
       'name': tweet.user.name,
       'avatar': tweet.user.profile_image_url_https
